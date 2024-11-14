@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Encoder</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body class="bg-gray-100 p-8">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded shadow-md">
+      <h2 class="text-xl font-bold mb-4">Text Encoder</h2>
+
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="inputText"
+          >Nhập họ tên:</label
+        >
+        <div class="flex items-center">
+         <input
+           type="text"
+           id="inputText"
+           class="w-full p-2 border rounded focus:outline-none focus:ring focus:border-blue-500"
+           placeholder="Nhập ký tự"
+           autocomplete="off"
+         />
+         <button
+           
+           class="btn-save ml-2 px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded"
+         >
+           Lưu
+         </button>
+        </div>
+      </div>
+
+      
+
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="encodedText"
+          >Mã hóa:</label
+        >
+        <div class="flex items-center">
+          <input
+            type="text"
+            id="encodedText"
+            class="w-full p-2 border rounded bg-gray-100 focus:outline-none focus:ring focus:border-blue-500"
+            readonly
+          />
+          <button
+            id="copyButton"
+            class="ml-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-2">Danh sách mã hóa</h3>
+        <ul
+          id="encodedList"
+          class="list-disc list-inside bg-gray-50 p-4 rounded shadow-inner"
+        ></ul>
+      </div>
+    </div>
+
+    <!-- <script>
+      // Bảng mã hóa ký tự
+      const encodeMap = {
+        a: "2",
+        b: "13",
+        c: "6",
+        d: "10",
+        e: "3",
+        f: "*",
+        g: "9",
+        h: "76",
+        i: "1",
+        j: "*",
+        k: "16",
+        l: "1",
+        m: "111",
+        n: "11",
+        o: "0",
+        p: "10",
+        q: "01",
+        r: "12",
+        s: "5",
+        t: "7",
+        u: "4",
+        v: "8",
+        w: "*",
+        x: "26",
+        y: "12",
+        z: "*",
+      };
+
+      // Hàm chuyển tiếng Việt có dấu thành không dấu và chữ thường
+      function removeDiacritics(text) {
+        return text
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+      }
+
+      // Hàm mã hóa
+      function encodeText(text) {
+        return text
+          .split("")
+          .map((char) => encodeMap[char] || "")
+          .join("")
+          .trim();
+      }
+
+      // Cập nhật danh sách mã hóa từ localStorage
+      function updateEncodedList() {
+        $("#encodedList").empty();
+        const encodedItems =
+          JSON.parse(localStorage.getItem("encodedList")) || [];
+        encodedItems.forEach((item, index) => {
+          $("#encodedList").append(
+            `<li class="flex justify-between items-center">
+            <span>${item}</span>
+            <button onclick="removeItem(${index})" class="text-red-500 ml-4">Xóa</button>
+          </li>`
+          );
+        });
+      }
+
+      // Sự kiện khi nhập vào ô input
+      $("#inputText").on("input", function () {
+        const originalText = $(this).val();
+        const text = removeDiacritics(originalText);
+        const encoded = encodeText(text);
+        $("#encodedText").val(encoded);
+      });
+
+      // Lưu mã hóa khi nhấn Enter, xử lý khoảng cách khi nhấn Space
+      $("#inputText").on("keypress", function (event) {
+        if (event.key === " ") {
+          console.log(event.key);
+
+          // Khi nhấn Space, thêm khoảng trắng vào ô mã hóa
+          let currentEncodedText = $("#encodedText").val();
+          $("#encodedText").val(currentEncodedText + " ");
+        } else if (event.key === "Enter") {
+          const originalText = $(this).val();
+          const text = removeDiacritics(originalText);
+          const encoded = encodeText(text);
+          if (text.trim() && encoded) {
+            let encodedList =
+              JSON.parse(localStorage.getItem("encodedList")) || [];
+            encodedList.push(`${originalText} => ${encoded}`);
+            localStorage.setItem("encodedList", JSON.stringify(encodedList));
+            updateEncodedList();
+            $(this).val(""); // Xóa ô input sau khi lưu
+            $("#encodedText").val(""); // Xóa ô mã hóa
+          }
+          event.preventDefault(); // Ngăn không cho form submit
+        }
+      });
+
+      // Xóa dòng mã hóa từ localStorage
+      function removeItem(index) {
+        let encodedList = JSON.parse(localStorage.getItem("encodedList")) || [];
+        encodedList.splice(index, 1);
+        localStorage.setItem("encodedList", JSON.stringify(encodedList));
+        updateEncodedList();
+      }
+
+      // Sao chép chuỗi mã hóa khi nhấn nút Copy
+      $("#copyButton").on("click", function () {
+        const encodedText = $("#encodedText").val();
+        if (encodedText) {
+          navigator.clipboard
+            .writeText(encodedText)
+            .then(() => {
+              alert("Đã sao chép mã hóa vào clipboard!");
+            })
+            .catch((err) => {
+              console.error("Không thể sao chép", err);
+            });
+        }
+      });
+
+      // Khởi tạo danh sách mã hóa từ localStorage khi tải trang
+      $(document).ready(function () {
+        updateEncodedList();
+      });
+    </script> -->
+
+    <script src="main.js"></script>
+  </body>
+</html>
